@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#080810"/>
+      <stop offset="100%" stop-color="#040406"/>
+    </linearGradient>
+    <linearGradient id="redGlow" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#7a1818" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#040406" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Red glow center -->
+  <ellipse cx="600" cy="350" rx="400" ry="200" fill="url(#redGlow)"/>
+
+  <!-- Rain lines -->
+  <g opacity="0.08" stroke="#bfb49a" stroke-width="1">
+    <line x1="100" y1="0" x2="95" y2="200"/>
+    <line x1="200" y1="50" x2="195" y2="250"/>
+    <line x1="300" y1="20" x2="295" y2="220"/>
+    <line x1="400" y1="80" x2="395" y2="280"/>
+    <line x1="500" y1="10" x2="495" y2="210"/>
+    <line x1="600" y1="60" x2="595" y2="260"/>
+    <line x1="700" y1="30" x2="695" y2="230"/>
+    <line x1="800" y1="70" x2="795" y2="270"/>
+    <line x1="900" y1="40" x2="895" y2="240"/>
+    <line x1="1000" y1="90" x2="995" y2="290"/>
+    <line x1="1100" y1="15" x2="1095" y2="215"/>
+  </g>
+
+  <!-- Divider lines -->
+  <line x1="500" y1="260" x2="540" y2="260" stroke="#7a1818" stroke-opacity="0.3" stroke-width="1"/>
+  <line x1="660" y1="260" x2="700" y2="260" stroke="#7a1818" stroke-opacity="0.3" stroke-width="1"/>
+
+  <!-- Title -->
+  <text x="600" y="310" text-anchor="middle" font-family="Georgia, serif" font-size="88" font-weight="700" fill="#e2d8c4" letter-spacing="4">
+    THE VANISHING
+  </text>
+
+  <!-- Subtitle -->
+  <text x="600" y="355" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#e2d8c4" opacity="0.4" font-style="italic">
+    A story about loss, truth, and the price of knowing.
+  </text>
+
+  <!-- EPOCH label -->
+  <text x="600" y="420" text-anchor="middle" font-family="monospace" font-size="14" fill="#5e5646" letter-spacing="8" opacity="0.5">
+    EPOCH
+  </text>
+
+  <!-- Bottom credit -->
+  <text x="600" y="580" text-anchor="middle" font-family="monospace" font-size="11" fill="#3a3428" letter-spacing="3" opacity="0.4">
+    A NOIR STORY
+  </text>
+</svg>

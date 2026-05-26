@@ -2,12 +2,63 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>EPOCH — The Vanishing</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- SEO -->
+    <meta name="description" content="A cinematic noir detective story told through scrolling. Kael searches for his missing sister Lina, uncovering a truth that will break him." />
+    <meta name="keywords" content="noir, detective, story, scroll, cinematic, interactive, web app" />
+    <meta name="author" content="ferah1223" />
+
+    <!-- Open Graph (preview saat share) -->
+    <meta property="og:title" content="EPOCH — The Vanishing" />
+    <meta property="og:description" content="A cinematic noir detective story. Tell my brother I am sorry. Tell him I tried." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ferah1223.github.io/epoch/" />
+    <meta property="og:image" content="https://ferah1223.github.io/epoch/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content="EPOCH" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="EPOCH — The Vanishing" />
+    <meta name="twitter:description" content="A cinematic noir detective story told through scrolling." />
+    <meta name="twitter:image" content="https://ferah1223.github.io/epoch/og-image.png" />
+
+    <!-- Theme -->
+    <meta name="theme-color" content="#040406" />
+    <meta name="msapplication-TileColor" content="#040406" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Font preload (prevent FOUT) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" />
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Prevent FOIT (flash of invisible text) -->
+    <style>
+      /* Fallback font metrics to prevent layout shift */
+      @font-face {
+        font-family: 'Special Elite Fallback';
+        src: local('Courier New');
+        ascent-override: 95%;
+        descent-override: 22%;
+        line-gap-override: 0%;
+        size-adjust: 105%;
+      }
+      @font-face {
+        font-family: 'Playfair Display Fallback';
+        src: local('Georgia');
+        ascent-override: 90%;
+        descent-override: 23%;
+        line-gap-override: 0%;
+        size-adjust: 102%;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

@@ -1,138 +1,101 @@
-# EPOCH — The Vanishing
+<p align="center">
+  <img src="https://img.shields.io/badge/EPOCH-v5-Noir?style=for-the-badge&color=040406&labelColor=7a1818" />
+  <img src="https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react&logoColor=white" />
+  <img src="https://img.shields.io/badge/TypeScript-5-blue?style=for-the-badge&logo=typescript&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=for-the-badge&logo=vite&logoColor=white" />
+</p>
 
-**A noir detective story about loss, truth, and the price of knowing. Told through cinematic scroll.**
+<h1 align="center">EPOCH — The Vanishing</h1>
+<p align="center">A cinematic noir detective story, told through scrolling.</p>
 
-![EPOCH](public/screenshot.png)
+<p align="center">
+  <img src="https://img.shields.io/badge/bundle-76KB_gzipped-brightgreen?style=flat-square" />
+  <img src="https://img.shields.io/badge/characters-2_SVG-blue?style=flat-square" />
+  <img src="https://img.shields.io/badge/scenes-6_cinematic-orange?style=flat-square" />
+  <img src="https://img.shields.io/badge/languages-EN_|_ID-yellow?style=flat-square" />
+</p>
 
 ---
 
 ## The Story
 
-> *"My name is Kael. I have not slept properly in three years."*
+Kael is a 28-year-old private detective who has spent three years searching for his sister Lina, who vanished at age 19. One night, a frantic mother calls — her daughter Mira, also 19, has disappeared after investigating Lina's case.
 
-Three years ago, Kael's sister Lina disappeared. The police closed the case. Kael became a detective to find her. Tonight, a new phone call leads him to the truth — one he was never prepared for.
+As Kael traces Mira's steps through jazz bars, dark offices, and fog-covered docks, he discovers the truth he feared most: Lina is gone. But her courage saved twelve other lives.
 
-**A story that will break your heart. 20–30 minutes of immersive noir storytelling.**
-
----
-
-## Acts
-
-| | Title | Duration | What Happens |
-|---|-------|----------|-------------|
-| **Prologue** | *The Vanishing* | 3 min | Kael introduces himself, his loss, his obsession |
-| **Act I** | *The Call* | 4 min | A mother calls. Her daughter Mira is missing. Same age as Lina. |
-| **Act II** | *The Scene* | 5 min | Mira's apartment. Her journal reveals she was investigating Lina's case. |
-| **Act III** | *The Hunt* | 6 min | Three locations: jazz bar, office, pier. Each reveals more. |
-| **Act IV** | *The Truth* | 5 min | The devastating revelation about Lina's fate. |
-| **Act V** | *The End* | 5 min | Resolution. Lina's last letter. Kael finally cries. |
-
----
+> *"Tell my brother I am sorry. Tell him I tried."*
 
 ## Features
 
-### Storytelling
-- 📖 **20–30 min narrative** — Deep, emotional noir story with real characters
-- 🌐 **Bilingual** — Full English & Indonesian (toggle button)
-- ✍️ **Typewriter text** — Character-by-character reveal for key moments
-- 📋 **Expandable clues** — Click to reveal investigation details
-- 💔 **Emotional climax** — The truth about Lina will shock you
+### Animated Characters
+- **Kael** — SVG detective character with 5 poses (stand, walk, sit, cry, kneel) and 5 expressions (neutral, sad, shock, cry, determined)
+- **Mira** — SVG character with 4 poses and 5 expressions
+- Characters appear at key story moments, moving with the narrative
 
-### Visual Design
-- 🌧️ **Rain effect** — CSS-animated rain particles
-- 🎞️ **Film grain** — Canvas noise overlay at 12fps
-- 🖼️ **Vignette** — Radial gradient edge darkening
-- 🪟 **Scene backgrounds** — Window with rain, desk lamp glow, harbor fog
-- 🔴 **Noir palette** — Deep black, aged paper, red accents
+### Cinematic Backgrounds
+Six unique SVG scene backgrounds that shift as you scroll:
+- **Window** — Rain-streaked window with city silhouette
+- **Apartment** — Mira's room with bookshelf, table, jacket
+- **Bar** — The Blue Note jazz bar with bottles and piano
+- **Office** — Viktor's file-filled office with filing cabinets
+- **Pier** — Dawn harbor with container ships and fog
+- **Car** — Interior with windshield rain
 
-### Audio
-- 🔇 **Web Audio API** — Scene-based ambient soundscape
-- 💓 **Heartbeat** — Low frequency pulse in tense moments
-- 🎵 **Jazz tones** — Harmonic intervals for investigation
-- 🎹 **Piano fade** — Melancholic ending
+### Story Structure
+| Act | Title | Duration | Elements |
+|-----|-------|----------|----------|
+| Prologue | The Vanishing | 5 min | Window rain, typewriter, title reveal |
+| Act I | The Call | 5 min | Phone call, Kael character, typewriter |
+| Act II | The Scene | 5 min | Apartment, 3 interactive clue cards |
+| Act III | The Hunt | 5 min | 3 locations, scene switching, Kael walking |
+| Act IV | The Truth | 5 min | Car scene, Mira character, emotional climax |
+| Act V | After | 5 min | Lina's letter, Kael crying, credits |
 
-### Navigation
-- 📊 **Scene timeline** — Clickable act navigator
-- ⌨️ **Accessible** — Keyboard nav, reduced motion, screen reader
-- 📱 **Responsive** — Mobile and desktop
+### Cinematic Effects
+- **Rain** — 40 CSS particle raindrops
+- **Film Grain** — Canvas noise at 12fps
+- **Vignette** — Radial gradient darkening
+- **Parallax** — Subtle drift on scene backgrounds
+- **Scroll Transitions** — IntersectionObserver-driven reveal animations
 
----
+### Accessibility
+- Full keyboard navigation
+- ARIA labels on all interactive elements
+- `prefers-reduced-motion` respected
+- Screen reader landmarks
+
+### Bilingual
+- Full English + Indonesian (80+ translation keys)
+- Toggle button in top-left corner
 
 ## Tech Stack
 
-| Category | Technology |
-|----------|-----------|
-| Framework | React 19 + TypeScript 5 |
-| Build | Vite 6 |
-| Styling | Tailwind CSS 4 |
-| Audio | Web Audio API |
-| Icons | Lucide React |
-| Grain | Canvas 2D @ 12fps |
-| i18n | Custom Context (EN/ID) |
-
----
-
-## Design System
-
-```
-Palette:
-  void     #040406    Deepest black
-  deep     #080810    Background
-  surface  #14141e    Cards
-  ink      #e2d8c4    Primary text
-  paper    #bfb49a    Secondary text
-  red      #7a1818    Accent
-  red-hot  #c42828    Highlights
-
-Fonts:
-  Special Elite        Typewriter (narration)
-  Playfair Display     Serif (headlines, emotional moments)
-  Inter                Body text
-  JetBrains Mono       Labels
-```
-
----
+- React 19 + TypeScript
+- Vite 8
+- Tailwind CSS 4
+- Pure SVG characters (no images)
+- Web Audio API ambient sound
+- Zero dependencies beyond React
 
 ## Getting Started
 
 ```bash
-git clone https://github.com/ferah1223/epoch.git
-cd epoch
 npm install
 npm run dev
 ```
 
----
+## Build
 
-## Architecture
-
-```
-src/
-├── context/Language.tsx    EN/ID translations (80+ keys)
-├── components/
-│   ├── Preloader           Case file loading
-│   ├── Rain                CSS rain animation
-│   ├── FilmGrain           Canvas noise overlay
-│   ├── Vignette            Radial darkening
-│   ├── Timeline            Act navigator
-│   ├── AudioCtrl           Web Audio soundscape
-│   └── LangToggle          EN/ID toggle
-├── scenes/
-│   ├── Prologue            Kael's introduction + window rain bg
-│   ├── ActCall             Phone call, typewriter reveal
-│   ├── ActScene            Crime scene, 3 expandable clues
-│   ├── ActHunt             Horizontal scroll, 3 locations
-│   ├── ActTruth            The devastating revelation
-│   └── ActEnd              Lina's letter, resolution, credits
-└── index.css               Tailwind + noir tokens
+```bash
+npm run build
 ```
 
----
-
-## License
-
-MIT
+Output: ~260KB JS (76KB gzipped), ~35KB CSS (6.6KB gzipped)
 
 ---
 
-*Powered by Xiaomi MiMo V2.5*
+<p align="center">
+  <sub>Built with ❤️ by <a href="https://github.com/ferah1223">ferah1223</a></sub>
+  <br/>
+  <sub>Powered by <a href="https://github.com/nousresearch/hermes-agent">Hermes Agent</a> + Xiaomi MiMo V2.5</sub>
+</p>

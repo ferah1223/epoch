@@ -137,3 +137,26 @@ section {
 /* Scrollbar hide for horizontal scroll */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Screen shake for shock moments */
+@keyframes screen-shake {
+  0%, 100% { transform: translate(0, 0); }
+  10% { transform: translate(-4px, -2px); }
+  20% { transform: translate(4px, 2px); }
+  30% { transform: translate(-3px, 1px); }
+  40% { transform: translate(3px, -1px); }
+  50% { transform: translate(-2px, 2px); }
+  60% { transform: translate(2px, -2px); }
+  70% { transform: translate(-1px, 1px); }
+  80% { transform: translate(1px, -1px); }
+  90% { transform: translate(-1px, 0); }
+}
+
+/* Heartbeat pulse for dramatic moments */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); opacity: 0.05; }
+  14% { transform: scale(1.03); opacity: 0.08; }
+  28% { transform: scale(1); opacity: 0.05; }
+  42% { transform: scale(1.02); opacity: 0.07; }
+  70% { transform: scale(1); opacity: 0.05; }
+}
