@@ -14,7 +14,11 @@ const CLUES: ClueCard[] = [
   { key: 'phone', icon: '📱' },
 ]
 
-export function ActScene() {
+interface Props {
+  scrollY: number
+}
+
+export function ActScene({ scrollY }: Props) {
   const { t } = useLang()
   const [v, setV] = useState<number[]>([])
   const [openClue, setOpenClue] = useState<string | null>(null)
@@ -34,7 +38,7 @@ export function ActScene() {
 
   return (
     <section ref={ref} data-act="2" className="relative min-h-[700vh] bg-deep overflow-hidden">
-      <SceneBackground scene="apartment" />
+      <SceneBackground scene="apartment" scrollY={scrollY} />
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Act header with Kael entering */}
@@ -78,7 +82,7 @@ export function ActScene() {
           </div>
         </div>
 
-        {/* Kael kneeling - investigation */}
+        {/* Kael kneeling */}
         <div className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
             <div data-p="3"
@@ -151,7 +155,7 @@ export function ActScene() {
           </div>
         ))}
 
-        {/* Kael standing - determined */}
+        {/* Kael standing */}
         <div className="min-h-[50vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
             <div data-p="8"

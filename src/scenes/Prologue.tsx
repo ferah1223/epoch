@@ -2,7 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useLang } from '../context/Language'
 import { SceneBackground } from '../components/SceneBackground'
 
-export function Prologue() {
+interface Props {
+  scrollY: number
+}
+
+export function Prologue({ scrollY }: Props) {
   const { t } = useLang()
   const [v, setV] = useState<number[]>([])
   const ref = useRef<HTMLDivElement>(null)
@@ -12,7 +16,7 @@ export function Prologue() {
       es.forEach((e) => {
         if (e.isIntersecting) setV((p) => [...new Set([...p, +(e.target.getAttribute('data-p') || '0')])])
       })
-    }, { threshold: 0.35 })
+    }, { threshold: 0.3 })
     ref.current?.querySelectorAll('[data-p]').forEach((el) => obs.observe(el))
     return () => obs.disconnect()
   }, [])
@@ -21,7 +25,7 @@ export function Prologue() {
 
   return (
     <section ref={ref} data-act="0" className="relative min-h-[500vh] bg-void overflow-hidden">
-      <SceneBackground scene="window" />
+      <SceneBackground scene="window" scrollY={scrollY} />
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Title block - cinematic reveal */}

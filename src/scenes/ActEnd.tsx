@@ -3,7 +3,11 @@ import { useLang } from '../context/Language'
 import { Kael } from '../components/Kael'
 import { SceneBackground } from '../components/SceneBackground'
 
-export function ActEnd() {
+interface Props {
+  scrollY: number
+}
+
+export function ActEnd({ scrollY }: Props) {
   const { t } = useLang()
   const [v, setV] = useState<number[]>([])
   const ref = useRef<HTMLDivElement>(null)
@@ -33,7 +37,7 @@ export function ActEnd() {
 
   return (
     <section ref={ref} data-act="5" className="relative min-h-[800vh] overflow-hidden">
-      <SceneBackground scene="window" opacity={0.6} />
+      <SceneBackground scene="window" scrollY={scrollY} opacity={0.6} />
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Act header */}
@@ -56,7 +60,6 @@ export function ActEnd() {
         {lines.map((line, i) => (
           <div key={i} className="min-h-[55vh] flex items-center justify-center px-4">
             <div className="w-full max-w-lg">
-              {/* Show Kael with different expressions at key moments */}
               {i === 1 && (
                 <div data-p={i}
                   className={`flex justify-center mb-6 transition-all duration-[2000ms] ${s(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>

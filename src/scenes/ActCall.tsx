@@ -3,7 +3,11 @@ import { useLang } from '../context/Language'
 import { Kael } from '../components/Kael'
 import { SceneBackground } from '../components/SceneBackground'
 
-export function ActCall() {
+interface Props {
+  scrollY: number
+}
+
+export function ActCall({ scrollY }: Props) {
   const { t } = useLang()
   const [v, setV] = useState<number[]>([])
   const [ci, setCi] = useState(0)
@@ -30,7 +34,7 @@ export function ActCall() {
 
   return (
     <section ref={ref} data-act="1" className="relative min-h-[600vh] bg-deep overflow-hidden">
-      <SceneBackground scene="window" opacity={0.8} />
+      <SceneBackground scene="window" scrollY={scrollY} opacity={0.8} />
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Act header with Kael */}
@@ -125,7 +129,7 @@ export function ActCall() {
           </div>
         ))}
 
-        {/* Final line - the moment */}
+        {/* Final line */}
         <div className="min-h-[70vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
             <div data-p="12"

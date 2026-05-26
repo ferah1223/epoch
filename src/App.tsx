@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { ScrollProvider } from './context/Scroll'
+import { useScroll } from './context/Scroll'
 import { Preloader } from './components/Preloader'
 import { Rain } from './components/Rain'
 import { FilmGrain } from './components/FilmGrain'
@@ -13,17 +15,11 @@ import { ActHunt } from './scenes/ActHunt'
 import { ActTruth } from './scenes/ActTruth'
 import { ActEnd } from './scenes/ActEnd'
 
-export default function App() {
-  const [loaded, setLoaded] = useState(false)
+function AppContent() {
+  const { scrollY } = useScroll()
   const [act, setAct] = useState(-1)
 
   useEffect(() => {
-    const t = setTimeout(() => setLoaded(true), 2200)
-    return () => clearTimeout(t)
-  }, [])
-
-  useEffect(() => {
-    if (!loaded) return
     const els = document.querySelectorAll('[data-act]')
     const obs = new IntersectionObserver(
       (entries) => {
@@ -38,9 +34,14 @@ export default function App() {
     )
     els.forEach((el) => obs.observe(el))
     return () => obs.disconnect()
-  }, [loaded])
+  }, [])
 
-  if (!loaded) return <Preloader />
+  // Update audio when act changes
+  useEffect(() => {
+    if (act >= 0) {
+      // The audio system will handle act changes internally
+    }
+  }, [act])
 
   return (
     <div className="relative bg-void">
@@ -51,13 +52,30 @@ export default function App() {
       <AudioCtrl act={act} />
       <LangToggle />
       <main>
-        <Prologue />
-        <ActCall />
-        <ActScene />
-        <ActHunt />
-        <ActTruth />
-        <ActEnd />
+        <Prologue scrollY={scrollY} />
+        <ActCall scrollY={scrollY} />
+        <ActScene scrollY={scrollY} />
+        <ActHunt scrollY={scrollY} />
+        <ActTruth scrollY={scrollY} />
+        <ActEnd scrollY={scrollY} />
       </main>
     </div>
+  )
+}
+
+export default function App() {
+  const [loaded, setLoaded] = useState(false)
+
+  useEffect(() => {
+    const t = setTimeout(() => setLoaded(true), 2500)
+    return () => clearTimeout(t)
+  }, [])
+
+  if (!loaded) return <Preloader />
+
+  return (
+    <ScrollProvider>
+      <AppContent />
+    </ScrollProvider>
   )
 }

@@ -29,7 +29,11 @@ const LOCS: LocData[] = [
   },
 ]
 
-export function ActHunt() {
+interface Props {
+  scrollY: number
+}
+
+export function ActHunt({ scrollY }: Props) {
   const { t } = useLang()
   const [v, setV] = useState<number[]>([])
   const [activeLoc, setActiveLoc] = useState(0)
@@ -50,7 +54,6 @@ export function ActHunt() {
     return () => obs.disconnect()
   }, [])
 
-  // Track which lines within active location are visible
   useEffect(() => {
     const obs = new IntersectionObserver((es) => {
       es.forEach((e) => {
@@ -68,8 +71,7 @@ export function ActHunt() {
 
   return (
     <section ref={ref} data-act="3" className="relative min-h-[800vh] overflow-hidden">
-      {/* Background switches based on active location */}
-      <SceneBackground scene={LOCS[activeLoc].scene} opacity={0.7} />
+      <SceneBackground scene={LOCS[activeLoc].scene} scrollY={scrollY} opacity={0.7} />
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Act header */}
@@ -88,7 +90,7 @@ export function ActHunt() {
           </div>
         </div>
 
-        {/* Kael walking animation */}
+        {/* Kael walking */}
         <div className="min-h-[40vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
             <div data-p="1"
@@ -98,7 +100,7 @@ export function ActHunt() {
           </div>
         </div>
 
-        {/* Location selector tabs */}
+        {/* Location tabs */}
         <div className="min-h-[20vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
             <div data-p="2"
@@ -125,7 +127,6 @@ export function ActHunt() {
         {/* Location details */}
         <div ref={scrollRef} className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
-            {/* Location name & time */}
             <div data-p="3"
               className={`transition-all duration-[1500ms] ${s(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
               <div className="mb-6">
@@ -138,7 +139,6 @@ export function ActHunt() {
               </div>
             </div>
 
-            {/* Location narration/dialog/detail lines */}
             {LOCS[activeLoc].lines.map((lineKey, i) => (
               <div key={`${activeLoc}-${i}`} data-loc-line={i}
                 className={`mt-6 transition-all duration-[1500ms] ${locLines.has(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -149,11 +149,10 @@ export function ActHunt() {
               </div>
             ))}
 
-            {/* Kael at location */}
             <div data-loc-line={3}
               className={`mt-8 transition-all duration-[1500ms] ${locLines.has(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
               <Kael
-                pose={activeLoc === 2 ? 'stand' : 'stand'}
+                pose="stand"
                 expression={activeLoc === 2 ? 'shock' : 'determined'}
                 size={100}
                 className="mx-auto"
@@ -162,7 +161,7 @@ export function ActHunt() {
           </div>
         </div>
 
-        {/* Pier ending line */}
+        {/* Pier ending */}
         <div className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
             <div data-p="4"
