@@ -1,82 +1,179 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLang } from '../context/Language'
+import { Kael } from '../components/Kael'
+import { SceneBackground } from '../components/SceneBackground'
+
+type Location = 'bar' | 'hotel' | 'pier'
+
+interface LocData {
+  key: Location
+  scene: 'bar' | 'office' | 'pier'
+  lines: string[]
+}
+
+const LOCS: LocData[] = [
+  {
+    key: 'bar',
+    scene: 'bar',
+    lines: ['loc.bar.narration', 'loc.bar.dialog', 'loc.bar.detail'],
+  },
+  {
+    key: 'hotel',
+    scene: 'office',
+    lines: ['loc.hotel.narration', 'loc.hotel.dialog', 'loc.hotel.detail'],
+  },
+  {
+    key: 'pier',
+    scene: 'pier',
+    lines: ['loc.pier.narration', 'loc.pier.dialog', 'loc.pier.detail'],
+  },
+]
 
 export function ActHunt() {
   const { t } = useLang()
+  const [v, setV] = useState<number[]>([])
+  const [activeLoc, setActiveLoc] = useState(0)
+  const [locLines, setLocLines] = useState<Set<number>>(new Set())
+  const scrollRef = useRef<HTMLDivElement>(null)
   const ref = useRef<HTMLDivElement>(null)
-  const track = useRef<HTMLDivElement>(null)
-  const [loc, setLoc] = useState(0)
-
-  const locs = [
-    { nk: 'loc.bar.name', tk: 'loc.bar.time', rk: 'loc.bar.narration', dk: 'loc.bar.dialog', fk: 'loc.bar.detail' },
-    { nk: 'loc.hotel.name', tk: 'loc.hotel.time', rk: 'loc.hotel.narration', dk: 'loc.hotel.dialog', fk: 'loc.hotel.detail' },
-    { nk: 'loc.pier.name', tk: 'loc.pier.time', rk: 'loc.pier.narration', dk: 'loc.pier.dialog', fk: 'loc.pier.detail' },
-  ]
 
   useEffect(() => {
-    const sec = ref.current, tr = track.current
-    if (!sec || !tr) return
-    const onScroll = () => {
-      const r = sec.getBoundingClientRect()
-      const h = sec.offsetHeight - window.innerHeight
-      const p = Math.max(0, Math.min(1, -r.top / h))
-      tr.style.transform = 'translateX(-' + (p * 66.66) + '%)'
-      setLoc(Math.min(2, Math.floor(p * 3)))
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    const obs = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        if (e.isIntersecting) {
+          const p = parseInt(e.target.getAttribute('data-p') || '0')
+          setV((prev) => [...new Set([...prev, p])])
+        }
+      })
+    }, { threshold: 0.3 })
+    ref.current?.querySelectorAll('[data-p]').forEach((el) => obs.observe(el))
+    return () => obs.disconnect()
   }, [])
 
+  // Track which lines within active location are visible
+  useEffect(() => {
+    const obs = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        if (e.isIntersecting) {
+          const idx = parseInt(e.target.getAttribute('data-loc-line') || '0')
+          setLocLines((prev) => new Set([...prev, idx]))
+        }
+      })
+    }, { threshold: 0.4 })
+    scrollRef.current?.querySelectorAll('[data-loc-line]').forEach((el) => obs.observe(el))
+    return () => obs.disconnect()
+  }, [activeLoc])
+
+  const s = (i: number) => v.includes(i)
+
   return (
-    <section ref={ref} data-act="3" className="relative bg-deep" style={{ height: '350vh' }}>
-      <div className="sticky top-0 h-screen overflow-hidden">
-        {/* Background changes per location */}
-        <div className="fixed inset-0 z-0 pointer-events-none transition-all duration-1000">
-          <div className={'absolute inset-0 ' + (loc === 0 ? 'bg-gradient-to-br from-deep via-shadow to-deep' : loc === 1 ? 'bg-gradient-to-br from-shadow via-deep to-shadow' : 'bg-gradient-to-b from-blue/[0.03] via-deep to-void')} />
-          {loc === 0 && <div className="absolute bottom-0 left-[40%] w-48 h-48 bg-amber/[0.02] rounded-full blur-[80px]" />}
-          {loc === 2 && <div className="absolute top-[20%] left-[50%] w-96 h-96 bg-blue/[0.03] rounded-full blur-[120px]" />}
+    <section ref={ref} data-act="3" className="relative min-h-[800vh] overflow-hidden">
+      {/* Background switches based on active location */}
+      <SceneBackground scene={LOCS[activeLoc].scene} opacity={0.7} />
+
+      <div className="relative z-10 flex flex-col items-center">
+        {/* Act header */}
+        <div className="h-screen flex items-center justify-center px-4">
+          <div className="w-full max-w-lg text-center">
+            <div data-p="0"
+              className={`transition-all duration-[2000ms] ${s(0) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              <span className="font-typewriter text-red/50 text-xs tracking-[0.3em] uppercase block mb-3">
+                {t('hunt.act')}
+              </span>
+              <h2 className="font-display text-3xl sm:text-4xl md:text-5xl text-ink tracking-tight">
+                {t('hunt.title')}
+              </h2>
+              <div className="h-px w-24 bg-red/15 mx-auto mt-4" />
+            </div>
+          </div>
         </div>
 
-        <div className="relative z-10">
-          <div className="absolute top-6 left-6 md:top-8 md:left-8">
-            <span className="font-typewriter text-red/50 text-xs tracking-[0.3em] uppercase">{t('hunt.act')}</span>
-            <h2 className="font-display text-3xl md:text-5xl text-ink mt-1 tracking-tight">{t('hunt.title')}</h2>
-            <div className="h-px w-24 bg-red/15 mt-3" />
-          </div>
-          <div className="absolute top-6 right-20 md:top-8 md:right-24 font-mono text-dim/30 text-xs">
-            {String(loc+1).padStart(2,'0')}/03
-          </div>
-
-          <div className="flex items-center h-full px-4 md:px-8">
-            <div ref={track} className="flex gap-6 transition-transform duration-75 ease-out" style={{ width: '300vw' }}>
-              {locs.map((l, i) => (
-                <div key={i} className="flex-shrink-0 w-[90vw] md:w-[58vw] h-[72vh] relative rounded-lg border border-red/6 overflow-hidden bg-surface/15">
-                  <div className="relative z-10 h-full flex flex-col justify-center p-6 md:p-12 overflow-y-auto">
-                    <div className="flex items-center gap-3 mb-5">
-                      <span className="font-mono text-red-hot text-xs tracking-widest">{t(l.tk)}</span>
-                      <div className="h-px flex-1 bg-red/8" />
-                    </div>
-                    <h3 className="font-display text-xl md:text-3xl text-ink mb-5 tracking-tight">{t(l.nk)}</h3>
-                    <p className="font-typewriter text-paper/60 text-xs md:text-sm leading-[1.8] tracking-wide mb-5">{t(l.rk)}</p>
-                    <p className="font-typewriter text-paper/50 text-xs md:text-sm leading-[1.8] tracking-wide border-l-2 border-red/8 pl-3 mb-5">{t(l.dk)}</p>
-                    <div className="border-t border-faint pt-3 mt-auto">
-                      <p className="font-body text-dim text-xs leading-relaxed">
-                        <span className="text-red/40 font-semibold">FINDING: </span>{t(l.fk)}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 left-3 w-4 h-4 border-t border-l border-red/8" />
-                  <div className="absolute bottom-3 right-3 w-4 h-4 border-b border-r border-red/8" />
-                </div>
-              ))}
+        {/* Kael walking animation */}
+        <div className="min-h-[40vh] flex items-center justify-center px-4">
+          <div className="w-full max-w-lg">
+            <div data-p="1"
+              className={`transition-all duration-[2000ms] ${s(1) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'}`}>
+              <Kael pose="walk" expression="determined" size={130} className="mx-auto" />
             </div>
           </div>
+        </div>
 
-          {loc === 2 && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-center z-10">
-              <p className="font-display text-ink/70 text-base italic">{t('loc.pier.end')}</p>
+        {/* Location selector tabs */}
+        <div className="min-h-[20vh] flex items-center justify-center px-4">
+          <div className="w-full max-w-lg">
+            <div data-p="2"
+              className={`transition-all duration-[1500ms] ${s(2) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+              <div className="flex gap-2 justify-center flex-wrap">
+                {LOCS.map((loc, i) => (
+                  <button
+                    key={loc.key}
+                    onClick={() => { setActiveLoc(i); setLocLines(new Set()) }}
+                    className={`px-4 py-2 rounded-md font-typewriter text-xs sm:text-sm transition-all duration-300
+                      ${activeLoc === i
+                        ? 'bg-red/20 text-ink border border-red/30'
+                        : 'bg-surface/40 text-paper/50 border border-faint/15 hover:border-red/15'}`}
+                    aria-label={t(`loc.${loc.key}.name`)}
+                  >
+                    {t(`loc.${loc.key}.name`)}
+                  </button>
+                ))}
+              </div>
             </div>
-          )}
+          </div>
+        </div>
+
+        {/* Location details */}
+        <div ref={scrollRef} className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="w-full max-w-lg">
+            {/* Location name & time */}
+            <div data-p="3"
+              className={`transition-all duration-[1500ms] ${s(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+              <div className="mb-6">
+                <h3 className="font-display text-ink text-xl sm:text-2xl font-semibold">
+                  {t(`loc.${LOCS[activeLoc].key}.name`)}
+                </h3>
+                <span className="font-typewriter text-dim/60 text-xs tracking-wider">
+                  {t(`loc.${LOCS[activeLoc].key}.time`)}
+                </span>
+              </div>
+            </div>
+
+            {/* Location narration/dialog/detail lines */}
+            {LOCS[activeLoc].lines.map((lineKey, i) => (
+              <div key={`${activeLoc}-${i}`} data-loc-line={i}
+                className={`mt-6 transition-all duration-[1500ms] ${locLines.has(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                <p className={`font-typewriter text-sm sm:text-base leading-[1.8] tracking-wide
+                  ${i === 0 ? 'text-paper/70' : i === 1 ? 'text-paper/60 border-l-2 border-red/15 pl-4' : 'text-paper/50 pl-4 border-l border-red/10'}`}>
+                  {t(lineKey)}
+                </p>
+              </div>
+            ))}
+
+            {/* Kael at location */}
+            <div data-loc-line={3}
+              className={`mt-8 transition-all duration-[1500ms] ${locLines.has(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+              <Kael
+                pose={activeLoc === 2 ? 'stand' : 'stand'}
+                expression={activeLoc === 2 ? 'shock' : 'determined'}
+                size={100}
+                className="mx-auto"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Pier ending line */}
+        <div className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="w-full max-w-lg text-center">
+            <div data-p="4"
+              className={`transition-all duration-[2000ms] ${s(4) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              <div className="w-8 h-px bg-red/30 mx-auto mb-6" />
+              <p className="font-display text-ink text-lg sm:text-xl italic">
+                {t('loc.pier.end')}
+              </p>
+              <div className="w-8 h-px bg-red/30 mx-auto mt-6" />
+            </div>
+          </div>
         </div>
       </div>
     </section>

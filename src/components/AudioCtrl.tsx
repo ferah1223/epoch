@@ -1,53 +1,83 @@
 import { useEffect, useRef, useState } from 'react'
-import { Volume2, VolumeX } from 'lucide-react'
 import { useLang } from '../context/Language'
 
-export function AudioCtrl({ act }: { act: number }) {
-  const { t } = useLang()
-  const [muted, setMuted] = useState(true)
-  const ctxR = useRef<AudioContext | null>(null)
-  const gainR = useRef<GainNode | null>(null)
-  const oscR = useRef<OscillatorNode[]>([])
+interface Props {
+  act: number
+}
 
-  const start = () => {
-    if (ctxR.current) { setMuted(false); gainR.current && (gainR.current.gain.value = 0.1); return }
-    const c = new AudioContext()
-    ctxR.current = c
-    const g = c.createGain(); g.gain.value = 0.1; g.connect(c.destination); gainR.current = g
+export function AudioCtrl({ act }: Props) {
+  const { t } = useLang()
+  const [muted, setMuted] = useState(true) // Start muted
+  const ctxRef = useRef<AudioContext | null>(null)
+  const gainRef = useRef<GainNode | null>(null)
+
+  useEffect(() => {
+    if (muted || !ctxRef.current) return
+    const ctx = ctxRef.current
+    const gain = gainRef.current
+    if (!gain) return
+
+    // Different ambient per act
+    gain.gain.cancelScheduledValues(ctx.currentTime)
+    gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(act === 4 ? 0.08 : 0.04, ctx.currentTime + 2)
+  }, [act, muted])
+
+  const initAudio = () => {
+    if (ctxRef.current) {
+      setMuted(!muted)
+      return
+    }
+
+    const ctx = new AudioContext()
+    ctxRef.current = ctx
+
+    const gain = ctx.createGain()
+    gain.gain.value = 0.04
+    gain.connect(ctx.destination)
+    gainRef.current = gain
+
+    // Low ambient drone
+    const osc = ctx.createOscillator()
+    osc.type = 'sine'
+    osc.frequency.value = 60
+    osc.connect(gain)
+    osc.start()
+
+    // Subtle harmonics
+    const osc2 = ctx.createOscillator()
+    osc2.type = 'sine'
+    osc2.frequency.value = 90
+    const gain2 = ctx.createGain()
+    gain2.gain.value = 0.3
+    osc2.connect(gain2)
+    gain2.connect(gain)
+    osc2.start()
+
     setMuted(false)
   }
 
-  useEffect(() => {
-    if (!ctxR.current || !gainR.current || muted) return
-    const c = ctxR.current, g = gainR.current
-    oscR.current.forEach(o => { try { o.stop() } catch {} }); oscR.current = []
-    const mk = (type: OscillatorType, freq: number, vol: number, lp?: number) => {
-      const o = c.createOscillator(); o.type = type; o.frequency.value = freq
-      const gn = c.createGain(); gn.gain.value = vol
-      if (lp) { const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; o.connect(f).connect(gn).connect(g) }
-      else o.connect(gn).connect(g)
-      o.start(); oscR.current.push(o)
-    }
-    if (act <= 0) mk('sine', 50, 0.04)
-    else if (act === 1) { mk('sine', 50, 0.03); mk('sine', 75, 0.015) }
-    else if (act === 2) mk('sawtooth', 60, 0.025, 160)
-    else if (act === 3) { mk('sine', 196, 0.012); mk('sine', 247, 0.008) }
-    else if (act === 4) mk('triangle', 147, 0.035)
-    else {
-      const o = c.createOscillator(); o.type = 'sine'; o.frequency.value = 261.63
-      const gn = c.createGain(); gn.gain.value = 0.025
-      gn.gain.exponentialRampToValueAtTime(0.001, c.currentTime + 8)
-      o.connect(gn).connect(g); o.start(); oscR.current.push(o)
-    }
-  }, [act, muted])
-
-  const toggle = () => { if (muted) start(); else { setMuted(true); gainR.current && (gainR.current.gain.value = 0) } }
-
   return (
-    <button onClick={toggle}
-      className="fixed top-5 right-5 z-50 w-9 h-9 rounded-full border border-red/15 bg-void/60 backdrop-blur-sm flex items-center justify-center hover:border-red/40 transition-all cursor-pointer"
-      aria-label={muted ? t('ui.sound') : t('ui.mute')}>
-      {muted ? <VolumeX size={14} className="text-dim" /> : <Volume2 size={14} className="text-red-hot" />}
+    <button
+      onClick={initAudio}
+      className="fixed top-4 right-4 z-50 p-2 rounded-md bg-surface/40 border border-faint/15
+        hover:border-red/20 transition-all duration-300 cursor-pointer"
+      aria-label={muted ? t('ui.sound') : t('ui.mute')}
+      title={muted ? t('ui.sound') : t('ui.mute')}
+    >
+      {muted ? (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-dim/50">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <line x1="23" y1="9" x2="17" y2="15" />
+          <line x1="17" y1="9" x2="23" y2="15" />
+        </svg>
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-ink/60">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+        </svg>
+      )}
     </button>
   )
 }

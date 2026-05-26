@@ -1,23 +1,38 @@
 import { useLang } from '../context/Language'
 
-export function Timeline({ act }: { act: number }) {
+interface Props {
+  act: number
+}
+
+const ACTS = ['tl.prologue', 'tl.call', 'tl.scene', 'tl.hunt', 'tl.truth', 'tl.end']
+
+export function Timeline({ act }: Props) {
   const { t } = useLang()
-  const items = [
-    { k: 'tl.prologue', i: 0 }, { k: 'tl.call', i: 1 }, { k: 'tl.scene', i: 2 },
-    { k: 'tl.hunt', i: 3 }, { k: 'tl.truth', i: 4 }, { k: 'tl.end', i: 5 },
-  ]
-  const go = (i: number) => document.querySelector('[data-act="' + i + '"]')?.scrollIntoView({ behavior: 'smooth' })
+
+  const scrollToAct = (idx: number) => {
+    const el = document.querySelector(`[data-act="${idx}"]`)
+    el?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   return (
-    <nav className="fixed right-5 top-1/2 -translate-y-1/2 z-50 flex flex-col items-end gap-4">
-      {items.map((it, idx) => (
-        <button key={idx} onClick={() => go(it.i)} className="group flex items-center gap-2.5 cursor-pointer">
-          <span className={'font-typewriter text-xs tracking-wider transition-all duration-500 whitespace-nowrap ' +
-            (act === it.i ? 'opacity-100 text-red-hot' : 'opacity-0 group-hover:opacity-50 text-dim')}>
-            {t(it.k)}
+    <nav
+      className="fixed right-3 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col items-end gap-2"
+      aria-label="Story navigation"
+    >
+      {ACTS.map((key, i) => (
+        <button
+          key={key}
+          onClick={() => scrollToAct(i)}
+          className="group flex items-center gap-2 cursor-pointer"
+          aria-label={t(key)}
+          aria-current={act === i ? 'step' : undefined}
+        >
+          <span className={`font-typewriter text-[10px] tracking-wider transition-all duration-300
+            ${act === i ? 'text-ink/70 opacity-100 translate-x-0' : 'text-dim/30 opacity-0 translate-x-2 group-hover:opacity-60 group-hover:translate-x-0'}`}>
+            {t(key)}
           </span>
-          <div className={'w-2 h-2 rounded-full transition-all duration-500 ' +
-            (act === it.i ? 'bg-red-hot shadow-[0_0_8px_rgba(196,40,40,0.5)] scale-150' : 'bg-faint group-hover:bg-dim/50')} />
+          <div className={`transition-all duration-300 rounded-full
+            ${act === i ? 'w-3 h-3 bg-red-hot shadow-[0_0_8px_rgba(196,40,40,0.3)]' : 'w-1.5 h-1.5 bg-dim/30 group-hover:bg-dim/50'}`} />
         </button>
       ))}
     </nav>

@@ -1,84 +1,164 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLang } from '../context/Language'
+import { Kael } from '../components/Kael'
+import { SceneBackground } from '../components/SceneBackground'
+
+interface ClueCard {
+  key: string
+  icon: string
+}
+
+const CLUES: ClueCard[] = [
+  { key: 'journal', icon: '📓' },
+  { key: 'photo', icon: '📷' },
+  { key: 'phone', icon: '📱' },
+]
 
 export function ActScene() {
   const { t } = useLang()
   const [v, setV] = useState<number[]>([])
-  const [exp, setExp] = useState<number | null>(null)
+  const [openClue, setOpenClue] = useState<string | null>(null)
   const ref = useRef<HTMLDivElement>(null)
-
-  const clues = [
-    { ik: 'journal', tk: 'clue.journal', dk: 'clue.journal.desc', xk: 'clue.journal.text', fk: 'clue.journal.detail' },
-    { ik: 'photo', tk: 'clue.photo', dk: 'clue.photo.desc', xk: '', fk: 'clue.photo.detail' },
-    { ik: 'phone', tk: 'clue.phone', dk: 'clue.phone.desc', xk: 'clue.phone.text', fk: '' },
-  ]
 
   useEffect(() => {
     const obs = new IntersectionObserver((es) => {
-      es.forEach((e) => { if (e.isIntersecting) setV((p) => [...new Set([...p, +(e.target.getAttribute('data-p') || 0)])]) })
-    }, { threshold: 0.3 })
+      es.forEach((e) => {
+        if (e.isIntersecting) setV((p) => [...new Set([...p, +(e.target.getAttribute('data-p') || '0')])])
+      })
+    }, { threshold: 0.25 })
     ref.current?.querySelectorAll('[data-p]').forEach((el) => obs.observe(el))
     return () => obs.disconnect()
   }, [])
 
   const s = (i: number) => v.includes(i)
 
-  // Background: small apartment, dim light
   return (
-    <section ref={ref} data-act="2" className="relative min-h-[350vh] bg-shadow overflow-hidden">
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-deep via-shadow to-deep" />
-        <div className="absolute top-[40%] left-[15%] w-32 h-32 bg-amber/[0.015] rounded-full blur-2xl" />
-      </div>
+    <section ref={ref} data-act="2" className="relative min-h-[700vh] bg-deep overflow-hidden">
+      <SceneBackground scene="apartment" />
 
-      <div className="relative z-10 max-w-2xl mx-auto px-6 pt-28">
-        <div className="mb-12">
-          <span className="font-typewriter text-red/50 text-xs tracking-[0.3em] uppercase">{t('tl.scene')}</span>
-          <h2 className="font-display text-3xl md:text-5xl text-ink mt-2 tracking-tight">{t('tl.scene')}</h2>
-          <div className="h-px w-24 bg-red/15 mt-3" />
+      <div className="relative z-10 flex flex-col items-center">
+        {/* Act header with Kael entering */}
+        <div className="h-screen flex items-center justify-center px-4">
+          <div className="w-full max-w-lg text-center">
+            <div data-p="0"
+              className={`transition-all duration-[2000ms] ${s(0) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              <span className="font-typewriter text-red/50 text-xs tracking-[0.3em] uppercase block mb-3">
+                {t('tl.scene')}
+              </span>
+              <div className="h-px w-16 bg-red/15 mx-auto" />
+            </div>
+            <div data-p="0"
+              className={`mt-8 transition-all duration-[2000ms] delay-500 ${s(0) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-16'}`}>
+              <Kael pose="stand" expression="determined" size={130} className="mx-auto" />
+            </div>
+          </div>
         </div>
 
-        {['scene.1','scene.2','scene.3','scene.4'].map((k, i) => (
-          <div key={k} data-p={i} className={'mb-10 transition-all duration-[1500ms] ' + (s(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6')}>
-            <p className={'font-typewriter text-sm md:text-base leading-[1.8] tracking-wide ' +
-              (i === 2 ? 'text-red-hot/80 italic' : 'text-paper/70')}>{t(k)}</p>
+        {/* Arrival narration */}
+        <div className="min-h-[50vh] flex items-center justify-center px-4">
+          <div className="w-full max-w-lg">
+            <div data-p="1"
+              className={`transition-all duration-[1800ms] ${s(1) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+              <p className="font-typewriter text-paper/70 text-sm sm:text-base leading-[1.8] tracking-wide">
+                {t('scene.1')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Apartment description */}
+        <div className="min-h-[50vh] flex items-center justify-center px-4">
+          <div className="w-full max-w-lg">
+            <div data-p="2"
+              className={`transition-all duration-[1800ms] ${s(2) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+              <p className="font-typewriter text-paper/70 text-sm sm:text-base leading-[1.8] tracking-wide">
+                {t('scene.2')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Kael kneeling - investigation */}
+        <div className="min-h-[60vh] flex items-center justify-center px-4">
+          <div className="w-full max-w-lg text-center">
+            <div data-p="3"
+              className={`transition-all duration-[1800ms] ${s(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+              <Kael pose="kneel" expression="determined" size={100} className="mx-auto" />
+              <p className="font-display text-ink text-lg sm:text-xl italic mt-6">
+                {t('scene.3')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Clue intro */}
+        <div className="min-h-[40vh] flex items-center justify-center px-4">
+          <div className="w-full max-w-lg text-center">
+            <div data-p="4"
+              className={`transition-all duration-[1500ms] ${s(4) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+              <p className="font-display text-ink text-lg sm:text-xl italic">
+                {t('scene.4')}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Interactive clue cards */}
+        {CLUES.map((clue, i) => (
+          <div key={clue.key} className="min-h-[70vh] flex items-center justify-center px-4">
+            <div className="w-full max-w-lg">
+              <div data-p={i + 5}
+                className={`transition-all duration-[1500ms] ${s(i + 5) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                <button
+                  onClick={() => setOpenClue(openClue === clue.key ? null : clue.key)}
+                  className="w-full text-left group cursor-pointer"
+                  aria-expanded={openClue === clue.key}
+                  aria-label={t(`clue.${clue.key}`)}
+                >
+                  <div className={`border rounded-lg p-5 sm:p-6 transition-all duration-500
+                    ${openClue === clue.key
+                      ? 'border-red/30 bg-surface/80'
+                      : 'border-faint/20 bg-surface/40 hover:border-red/20 hover:bg-surface/60'}`}>
+                    <div className="flex items-center gap-4 mb-3">
+                      <span className="text-2xl" role="img" aria-hidden="true">{clue.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display text-ink text-base sm:text-lg font-semibold truncate">
+                          {t(`clue.${clue.key}`)}
+                        </h3>
+                        <p className="font-typewriter text-paper/50 text-xs sm:text-sm truncate">
+                          {t(`clue.${clue.key}.desc`)}
+                        </p>
+                      </div>
+                      <span className={`text-red/40 transition-transform duration-300 flex-shrink-0 ${openClue === clue.key ? 'rotate-180' : ''}`}>
+                        ▼
+                      </span>
+                    </div>
+
+                    <div className={`overflow-hidden transition-all duration-500 ${openClue === clue.key ? 'max-h-[300px] opacity-100 mt-4' : 'max-h-0 opacity-0'}`}>
+                      <div className="border-t border-faint/15 pt-4 space-y-3">
+                        <p className="font-typewriter text-paper/70 text-sm leading-[1.7]">
+                          {t(`clue.${clue.key}.text`)}
+                        </p>
+                        <p className="font-typewriter text-paper/50 text-xs leading-[1.6] italic">
+                          {t(`clue.${clue.key}.detail`)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
           </div>
         ))}
 
-        {/* Clue cards */}
-        <div className="space-y-5 mt-12 pb-24">
-          {clues.map((c, i) => (
-            <div key={i} data-p={4 + i}
-              className={'transition-all duration-700 ' + (s(4 + i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6')}
-              style={{ transitionDelay: (i * 150) + 'ms' }}>
-              <div onClick={() => setExp(exp === i ? null : i)}
-                className="relative border border-red/8 rounded-lg p-5 bg-surface/30 cursor-pointer hover:border-red/15 transition-all">
-                <div className="absolute -top-px -left-px w-4 h-4 border-t border-l border-red/15" />
-                <div className="absolute -bottom-px -right-px w-4 h-4 border-b border-r border-red/15" />
-                <div className="flex items-start gap-3">
-                  <span className="text-xl mt-0.5">{['📓','📸','📱'][i]}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h3 className="font-display text-base text-ink truncate">{t(c.tk)}</h3>
-                      <span className="font-mono text-dim/30 text-xs flex-shrink-0">{String(i+1).padStart(2,'0')}</span>
-                    </div>
-                    <p className="font-typewriter text-paper/50 text-xs leading-[1.7] mt-1.5 tracking-wide">{t(c.dk)}</p>
-                    {c.xk && exp === i && (
-                      <p className="font-typewriter text-paper/60 text-xs leading-[1.7] mt-3 pt-3 border-t border-red/5 tracking-wide italic">
-                        {t(c.xk)}
-                      </p>
-                    )}
-                    {c.fk && exp === i && (
-                      <p className="font-body text-dim text-xs leading-relaxed mt-3 pt-3 border-t border-red/5">
-                        <span className="text-red/50 font-semibold">FINDING: </span>{t(c.fk)}
-                      </p>
-                    )}
-                    <p className="font-mono text-dim/25 text-[10px] mt-2">{exp === i ? '▲ collapse' : '▼ reveal'}</p>
-                  </div>
-                </div>
-              </div>
+        {/* Kael standing - determined */}
+        <div className="min-h-[50vh] flex items-center justify-center px-4">
+          <div className="w-full max-w-lg text-center">
+            <div data-p="8"
+              className={`transition-all duration-[2000ms] ${s(8) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+              <Kael pose="stand" expression="determined" size={140} className="mx-auto" />
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>

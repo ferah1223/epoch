@@ -18,7 +18,7 @@ export default function App() {
   const [act, setAct] = useState(-1)
 
   useEffect(() => {
-    const t = setTimeout(() => setLoaded(true), 2500)
+    const t = setTimeout(() => setLoaded(true), 2200)
     return () => clearTimeout(t)
   }, [])
 
@@ -28,10 +28,13 @@ export default function App() {
     const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
-          if (e.isIntersecting) setAct(parseInt(e.target.getAttribute('data-act') || '0'))
+          if (e.isIntersecting) {
+            const actNum = parseInt(e.target.getAttribute('data-act') || '0')
+            setAct(actNum)
+          }
         })
       },
-      { threshold: 0.2 }
+      { threshold: 0.15 }
     )
     els.forEach((el) => obs.observe(el))
     return () => obs.disconnect()
@@ -40,7 +43,7 @@ export default function App() {
   if (!loaded) return <Preloader />
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative bg-void">
       <Rain />
       <FilmGrain />
       <Vignette />

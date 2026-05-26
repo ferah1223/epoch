@@ -1,34 +1,52 @@
 import { useEffect, useRef } from 'react'
 
 export function FilmGrain() {
-  const ref = useRef<HTMLCanvasElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
   useEffect(() => {
-    const c = ref.current
-    if (!c) return
-    const ctx = c.getContext('2d')
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
     if (!ctx) return
-    const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight }
-    resize()
-    window.addEventListener('resize', resize)
-    let f = 0
+
+    let raf: number
+    let frame = 0
+
     const render = () => {
-      f++
-      if (f % 10 !== 0) { requestAnimationFrame(render); return }
-      const w = c.width, h = c.height
-      const img = ctx.createImageData(w, h)
-      const d = img.data
-      for (let i = 0; i < d.length; i += 24) {
-        const v = (Math.random() * 255) | 0
-        d[i] = v
-        d[i + 1] = v
-        d[i + 2] = v
-        d[i + 3] = 5
+      frame++
+      if (frame % 3 !== 0) { // Only render every 3rd frame for performance
+        raf = requestAnimationFrame(render)
+        return
       }
-      ctx.putImageData(img, 0, 0)
-      requestAnimationFrame(render)
+
+      canvas.width = window.innerWidth / 4
+      canvas.height = window.innerHeight / 4
+
+      const imageData = ctx.createImageData(canvas.width, canvas.height)
+      const data = imageData.data
+
+      for (let i = 0; i < data.length; i += 4) {
+        const v = Math.random() * 25
+        data[i] = v
+        data[i + 1] = v
+        data[i + 2] = v
+        data[i + 3] = 12 // Very subtle
+      }
+
+      ctx.putImageData(imageData, 0, 0)
+      raf = requestAnimationFrame(render)
     }
-    const id = requestAnimationFrame(render)
-    return () => { cancelAnimationFrame(id); window.removeEventListener('resize', resize) }
+
+    raf = requestAnimationFrame(render)
+    return () => cancelAnimationFrame(raf)
   }, [])
-  return <canvas ref={ref} className="fixed inset-0 pointer-events-none z-[85]" style={{ mixBlendMode: 'overlay' }} />
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 z-[3] pointer-events-none opacity-[0.06] mix-blend-overlay"
+      aria-hidden="true"
+      style={{ width: '100%', height: '100%', imageRendering: 'pixelated' }}
+    />
+  )
 }
