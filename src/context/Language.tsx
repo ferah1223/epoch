@@ -108,11 +108,25 @@ const T: Record<string, Record<Lang, string>> = {
 
   'ui.mute': { en: 'Mute', id: 'Bisukan' },
   'ui.sound': { en: 'Sound', id: 'Suara' },
+  'audio.ambient': { en: 'Ambient', id: 'Ambien' },
+  'audio.sfx': { en: 'Effects', id: 'Efek' },
+  'audio.narration': { en: 'Voice', id: 'Suara' },
+  'audio.play_narration': { en: '▶ Play Voice', id: '▶ Putar Suara' },
+  'audio.stop_narration': { en: '■ Stop Voice', id: '■ Hentikan Suara' },
 }
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>('en')
-  const toggle = () => setLang((l) => l === 'en' ? 'id' : 'en')
-  const t = (k: string): string => T[k]?.[lang] || k
+  const [lang, setLang] = useState<Lang>(() => {
+    try {
+      const saved = localStorage.getItem('epoch-lang')
+      return (saved === 'en' || saved === 'id') ? saved : 'en'
+    } catch { return 'en' }
+  })
+  const toggle = () => setLang((l) => {
+    const next = l === 'en' ? 'id' : 'en'
+    try { localStorage.setItem('epoch-lang', next) } catch {}
+    return next
+  })
+  const t = (k: string): string => T[k]?.[lang] || T[k]?.['en'] || k
   return <Ctx.Provider value={{ lang, toggle, t }}>{children}</Ctx.Provider>
 }
