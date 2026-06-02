@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useLang } from '../context/Language'
 import { Kael } from '../components/Kael'
 import { SceneBackground } from '../components/SceneBackground'
+
+gsap.registerPlugin(ScrollTrigger)
 
 type Location = 'bar' | 'hotel' | 'pier'
 
@@ -12,73 +16,84 @@ interface LocData {
 }
 
 const LOCS: LocData[] = [
-  {
-    key: 'bar',
-    scene: 'bar',
-    lines: ['loc.bar.narration', 'loc.bar.dialog', 'loc.bar.detail'],
-  },
-  {
-    key: 'hotel',
-    scene: 'office',
-    lines: ['loc.hotel.narration', 'loc.hotel.dialog', 'loc.hotel.detail'],
-  },
-  {
-    key: 'pier',
-    scene: 'pier',
-    lines: ['loc.pier.narration', 'loc.pier.dialog', 'loc.pier.detail'],
-  },
+  { key: 'bar', scene: 'bar', lines: ['loc.bar.narration', 'loc.bar.dialog', 'loc.bar.detail'] },
+  { key: 'hotel', scene: 'office', lines: ['loc.hotel.narration', 'loc.hotel.dialog', 'loc.hotel.detail'] },
+  { key: 'pier', scene: 'pier', lines: ['loc.pier.narration', 'loc.pier.dialog', 'loc.pier.detail'] },
 ]
 
-interface Props {
-  scrollY: number
-}
-
-export function ActHunt({ scrollY }: Props) {
+export function ActHunt() {
   const { t } = useLang()
-  const [v, setV] = useState<number[]>([])
   const [activeLoc, setActiveLoc] = useState(0)
-  const [locLines, setLocLines] = useState<Set<number>>(new Set())
   const scrollRef = useRef<HTMLDivElement>(null)
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLElement>(null)
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
 
-  useEffect(() => {
-    const obs = new IntersectionObserver((es) => {
-      es.forEach((e) => {
-        if (e.isIntersecting) {
-          const p = parseInt(e.target.getAttribute('data-p') || '0')
-          setV((prev) => [...new Set([...prev, p])])
-        }
-      })
-    }, { threshold: 0.3 })
-    ref.current?.querySelectorAll('[data-p]').forEach((el) => obs.observe(el))
-    return () => obs.disconnect()
+  // Keyboard navigation for tabs (arrow keys)
+  const handleTabKeyDown = useCallback((e: React.KeyboardEvent) => {
+    const tabs = tabRefs.current.filter(Boolean)
+    const current = tabs.findIndex(t => t === document.activeElement)
+    if (current === -1) return
+
+    let next = current
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+      next = (current + 1) % tabs.length
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      next = (current - 1 + tabs.length) % tabs.length
+    } else if (e.key === 'Home') {
+      next = 0
+    } else if (e.key === 'End') {
+      next = tabs.length - 1
+    } else return
+
+    e.preventDefault()
+    tabs[next]?.focus()
+    setActiveLoc(next)
   }, [])
 
+  // GSAP reveals
   useEffect(() => {
-    const obs = new IntersectionObserver((es) => {
-      es.forEach((e) => {
-        if (e.isIntersecting) {
-          const idx = parseInt(e.target.getAttribute('data-loc-line') || '0')
-          setLocLines((prev) => new Set([...prev, idx]))
-        }
+    if (!ref.current) return
+    const ctx = gsap.context(() => {
+      ref.current!.querySelectorAll('[data-reveal]').forEach((el) => {
+        gsap.from(el, {
+          y: 30, opacity: 0, duration: 1.2, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+        })
       })
-    }, { threshold: 0.4 })
-    scrollRef.current?.querySelectorAll('[data-loc-line]').forEach((el) => obs.observe(el))
-    return () => obs.disconnect()
-  }, [activeLoc])
+      // Location line reveals (when activeLoc changes, re-trigger)
+      ref.current!.querySelectorAll('[data-slide-left]').forEach((el) => {
+        gsap.from(el, {
+          x: -80, opacity: 0, duration: 1.5, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+        })
+      })
+    }, ref)
+    return () => ctx.revert()
+  }, [])
 
-  const s = (i: number) => v.includes(i)
+  // Reveal location lines when content changes
+  useEffect(() => {
+    if (!scrollRef.current) return
+    const ctx = gsap.context(() => {
+      scrollRef.current!.querySelectorAll('[data-loc-line]').forEach((el) => {
+        gsap.from(el, {
+          y: 20, opacity: 0, duration: 1, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 90%', toggleActions: 'play none none reverse' }
+        })
+      })
+    }, scrollRef)
+    return () => ctx.revert()
+  }, [activeLoc])
 
   return (
     <section ref={ref} data-act="3" className="relative min-h-[800vh] overflow-hidden">
-      <SceneBackground scene={LOCS[activeLoc].scene} scrollY={scrollY} opacity={0.7} />
+      <SceneBackground scene={LOCS[activeLoc].scene} opacity={0.7} />
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Act header */}
         <div className="h-screen flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="0"
-              className={`transition-all duration-[2000ms] ${s(0) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div data-reveal>
               <span className="font-typewriter text-red/50 text-xs tracking-[0.3em] uppercase block mb-3">
                 {t('hunt.act')}
               </span>
@@ -93,28 +108,36 @@ export function ActHunt({ scrollY }: Props) {
         {/* Kael walking */}
         <div className="min-h-[40vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
-            <div data-p="1"
-              className={`transition-all duration-[2000ms] ${s(1) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-20'}`}>
+            <div data-slide-left>
               <Kael pose="walk" expression="determined" size={130} className="mx-auto" />
             </div>
           </div>
         </div>
 
-        {/* Location tabs */}
+        {/* Location tabs — with keyboard arrow navigation */}
         <div className="min-h-[20vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
-            <div data-p="2"
-              className={`transition-all duration-[1500ms] ${s(2) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-              <div className="flex gap-2 justify-center flex-wrap">
+            <div data-reveal>
+              <div
+                role="tablist"
+                aria-label="Investigation locations"
+                className="flex gap-2 justify-center flex-wrap"
+                onKeyDown={handleTabKeyDown}
+              >
                 {LOCS.map((loc, i) => (
                   <button
                     key={loc.key}
-                    onClick={() => { setActiveLoc(i); setLocLines(new Set()) }}
-                    className={`px-4 py-2 rounded-md font-typewriter text-xs sm:text-sm transition-all duration-300
+                    ref={el => { tabRefs.current[i] = el }}
+                    role="tab"
+                    aria-selected={activeLoc === i}
+                    aria-controls={`tabpanel-${loc.key}`}
+                    tabIndex={activeLoc === i ? 0 : -1}
+                    onClick={() => setActiveLoc(i)}
+                    className={`px-4 py-2 rounded-md font-typewriter text-xs sm:text-sm transition-all duration-300 cursor-pointer
+                      outline-none focus-visible:ring-2 focus-visible:ring-red-hot focus-visible:ring-offset-1 focus-visible:ring-offset-void
                       ${activeLoc === i
                         ? 'bg-red/20 text-ink border border-red/30'
                         : 'bg-surface/40 text-paper/50 border border-faint/15 hover:border-red/15'}`}
-                    aria-label={t(`loc.${loc.key}.name`)}
                   >
                     {t(`loc.${loc.key}.name`)}
                   </button>
@@ -127,36 +150,40 @@ export function ActHunt({ scrollY }: Props) {
         {/* Location details */}
         <div ref={scrollRef} className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
-            <div data-p="3"
-              className={`transition-all duration-[1500ms] ${s(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-              <div className="mb-6">
-                <h3 className="font-display text-ink text-xl sm:text-2xl font-semibold">
-                  {t(`loc.${LOCS[activeLoc].key}.name`)}
-                </h3>
-                <span className="font-typewriter text-dim/60 text-xs tracking-wider">
-                  {t(`loc.${LOCS[activeLoc].key}.time`)}
-                </span>
+            <div
+              role="tabpanel"
+              id={`tabpanel-${LOCS[activeLoc].key}`}
+              aria-labelledby={`tab-${LOCS[activeLoc].key}`}
+            >
+              <div data-loc-line={0}>
+                <div className="mb-6">
+                  <h3 className="font-display text-ink text-xl sm:text-2xl font-semibold">
+                    {t(`loc.${LOCS[activeLoc].key}.name`)}
+                  </h3>
+                  <span className="font-typewriter text-dim/60 text-xs tracking-wider">
+                    {t(`loc.${LOCS[activeLoc].key}.time`)}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {LOCS[activeLoc].lines.map((lineKey, i) => (
-              <div key={`${activeLoc}-${i}`} data-loc-line={i}
-                className={`mt-6 transition-all duration-[1500ms] ${locLines.has(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                <p className={`font-typewriter text-sm sm:text-base leading-[1.8] tracking-wide
-                  ${i === 0 ? 'text-paper/70' : i === 1 ? 'text-paper/60 border-l-2 border-red/15 pl-4' : 'text-paper/50 pl-4 border-l border-red/10'}`}>
-                  {t(lineKey)}
-                </p>
+              {LOCS[activeLoc].lines.map((lineKey, i) => (
+                <div key={`${activeLoc}-${i}`} data-loc-line={i + 1}
+                  className="mt-6">
+                  <p className={`font-typewriter text-sm sm:text-base leading-[1.8] tracking-wide
+                    ${i === 0 ? 'text-paper/70' : i === 1 ? 'text-paper/60 border-l-2 border-red/15 pl-4' : 'text-paper/50 pl-4 border-l border-red/10'}`}>
+                    {t(lineKey)}
+                  </p>
+                </div>
+              ))}
+
+              <div data-loc-line={4} className="mt-8">
+                <Kael
+                  pose="stand"
+                  expression={activeLoc === 2 ? 'shock' : 'determined'}
+                  size={100}
+                  className="mx-auto"
+                />
               </div>
-            ))}
-
-            <div data-loc-line={3}
-              className={`mt-8 transition-all duration-[1500ms] ${locLines.has(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-              <Kael
-                pose="stand"
-                expression={activeLoc === 2 ? 'shock' : 'determined'}
-                size={100}
-                className="mx-auto"
-              />
             </div>
           </div>
         </div>
@@ -164,8 +191,7 @@ export function ActHunt({ scrollY }: Props) {
         {/* Pier ending */}
         <div className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="4"
-              className={`transition-all duration-[2000ms] ${s(4) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div data-reveal>
               <div className="w-8 h-px bg-red/30 mx-auto mb-6" />
               <p className="font-display text-ink text-lg sm:text-xl italic">
                 {t('loc.pier.end')}

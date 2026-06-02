@@ -11,26 +11,36 @@ export function FilmGrain() {
 
     let raf: number
     let frame = 0
+    let imageData: ImageData | null = null
+    let lastW = 0
+    let lastH = 0
 
     const render = () => {
       frame++
-      if (frame % 3 !== 0) { // Only render every 3rd frame for performance
+      if (frame % 3 !== 0) {
         raf = requestAnimationFrame(render)
         return
       }
 
-      canvas.width = window.innerWidth / 4
-      canvas.height = window.innerHeight / 4
+      const w = window.innerWidth / 4
+      const h = window.innerHeight / 4
 
-      const imageData = ctx.createImageData(canvas.width, canvas.height)
+      // Only recreate buffer when size changes
+      if (w !== lastW || h !== lastH || !imageData) {
+        canvas.width = w
+        canvas.height = h
+        imageData = ctx.createImageData(w, h)
+        lastW = w
+        lastH = h
+      }
+
       const data = imageData.data
-
       for (let i = 0; i < data.length; i += 4) {
         const v = Math.random() * 25
         data[i] = v
         data[i + 1] = v
         data[i + 2] = v
-        data[i + 3] = 12 // Very subtle
+        data[i + 3] = 12
       }
 
       ctx.putImageData(imageData, 0, 0)

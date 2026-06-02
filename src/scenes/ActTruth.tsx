@@ -1,48 +1,65 @@
 import { useEffect, useRef, useState } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useLang } from '../context/Language'
 import { Kael } from '../components/Kael'
 import { Mira } from '../components/Mira'
 import { SceneBackground } from '../components/SceneBackground'
 
-interface Props {
-  scrollY: number
-}
+gsap.registerPlugin(ScrollTrigger)
 
-export function ActTruth({ scrollY }: Props) {
+export function ActTruth() {
   const { t } = useLang()
-  const [v, setV] = useState<number[]>([])
   const [flash, setFlash] = useState(false)
   const [shake, setShake] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const [shockRevealed, setShockRevealed] = useState(false)
+  const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    const obs = new IntersectionObserver((es) => {
-      es.forEach((e) => {
-        if (e.isIntersecting) {
-          const p = parseInt(e.target.getAttribute('data-p') || '0')
-          setV((prev) => [...new Set([...prev, p])])
+    if (!ref.current) return
+    const ctx = gsap.context(() => {
+      // Standard reveals
+      ref.current!.querySelectorAll('[data-reveal]').forEach((el) => {
+        gsap.from(el, {
+          y: 30, opacity: 0, duration: 1.2, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+        })
+      })
 
-          if (p === 4) {
+      // Character reveals (slower, more dramatic)
+      ref.current!.querySelectorAll('[data-char-reveal]').forEach((el) => {
+        gsap.from(el, {
+          y: 50, opacity: 0, duration: 2, ease: 'power3.out',
+          scrollTrigger: { trigger: el, start: 'top 80%', toggleActions: 'play none none reverse' }
+        })
+      })
+
+      // SHOCK MOMENT — triggers flash, shake, and visual effects
+      const shockEl = ref.current!.querySelector('[data-shock]')
+      if (shockEl) {
+        ScrollTrigger.create({
+          trigger: shockEl,
+          start: 'top 75%',
+          once: true,
+          onEnter: () => {
+            setShockRevealed(true)
             setFlash(true)
             setTimeout(() => setFlash(false), 800)
             setShake(true)
             setTimeout(() => setShake(false), 600)
           }
-        }
-      })
-    }, { threshold: 0.3 })
-    ref.current?.querySelectorAll('[data-p]').forEach((el) => obs.observe(el))
-    return () => obs.disconnect()
+        })
+      }
+    }, ref)
+    return () => ctx.revert()
   }, [])
-
-  const s = (i: number) => v.includes(i)
 
   const lines = [
     { k: 'truth.1', style: 'normal', char: null as null | 'kael' | 'mira' },
     { k: 'truth.2', style: 'normal', char: 'mira' as const },
     { k: 'truth.3', style: 'dialog', char: null },
     { k: 'truth.4', style: 'dialog', char: 'mira' as const },
-    { k: 'truth.5', style: 'shock', char: 'kael' as const },
+    { k: 'truth.5', style: 'shock', char: 'kael' as const, isShock: true },
     { k: 'truth.6', style: 'normal', char: 'mira' as const },
     { k: 'truth.7', style: 'quote', char: null },
     { k: 'truth.8', style: 'ending', char: 'kael' as const },
@@ -61,12 +78,12 @@ export function ActTruth({ scrollY }: Props) {
         }`}
       />
 
-      <SceneBackground scene="car" scrollY={scrollY} opacity={s(4) ? 0.9 : 0.5} />
+      <SceneBackground scene="car" opacity={shockRevealed ? 0.9 : 0.5} />
 
       {/* Red pulse at shock */}
       <div
         className={`fixed inset-0 z-[1] pointer-events-none transition-all duration-[3000ms] ${
-          s(4) ? 'opacity-100' : 'opacity-0'
+          shockRevealed ? 'opacity-100' : 'opacity-0'
         }`}
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(122,24,24,0.08)_0%,transparent_40%)] animate-[glow-pulse_2s_ease-in-out_infinite]" />
@@ -75,7 +92,7 @@ export function ActTruth({ scrollY }: Props) {
       {/* Vignette intensifies */}
       <div
         className={`fixed inset-0 z-[2] pointer-events-none transition-all duration-[2000ms] ${
-          s(4) ? 'opacity-100' : 'opacity-0'
+          shockRevealed ? 'opacity-100' : 'opacity-0'
         }`}
         style={{
           background: 'radial-gradient(ellipse at center, transparent 30%, rgba(4,4,6,0.7) 100%)',
@@ -83,11 +100,10 @@ export function ActTruth({ scrollY }: Props) {
       />
 
       <div className="relative z-10 flex flex-col items-center">
-        {/* Act header */}
+        {/* Act header — heartbeat SFX */}
         <div className="h-screen flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="0"
-              className={`transition-all duration-[2000ms] ${s(0) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div data-reveal data-sfx="heartbeat">
               <span className="font-typewriter text-red/50 text-xs tracking-[0.3em] uppercase block mb-3">
                 {t('truth.act')}
               </span>
@@ -104,8 +120,7 @@ export function ActTruth({ scrollY }: Props) {
           <div key={i} className="min-h-[60vh] flex items-center justify-center px-4">
             <div className="w-full max-w-lg">
               {line.char && (
-                <div data-p={i}
-                  className={`flex justify-center mb-6 transition-all duration-[2000ms] ${s(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                <div data-char-reveal className="flex justify-center mb-6">
                   {line.char === 'kael' && (
                     <Kael
                       pose={i === 7 ? 'sit' : 'stand'}
@@ -124,8 +139,8 @@ export function ActTruth({ scrollY }: Props) {
                 </div>
               )}
 
-              <div data-p={i}
-                className={`transition-all duration-[1800ms] ${s(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+              {/* Shock line triggers thunder SFX */}
+              <div {...(line.isShock ? { 'data-shock': '', 'data-sfx': 'thunder' } : {})} data-reveal>
                 <p className={
                   line.style === 'shock'
                     ? 'font-display text-ink text-xl sm:text-2xl md:text-3xl italic text-center leading-[1.6] animate-[fade-in-up_1.5s_ease-out]'
@@ -146,7 +161,7 @@ export function ActTruth({ scrollY }: Props) {
 
         {/* Beat of silence */}
         <div className="h-[30vh] flex items-center justify-center">
-          <div className={`transition-opacity duration-[2000ms] ${s(7) ? 'opacity-20' : 'opacity-0'}`}>
+          <div data-reveal className="opacity-20">
             <div className="w-1 h-1 bg-red-hot rounded-full animate-[glow-pulse_3s_ease-in-out_infinite]" />
           </div>
         </div>

@@ -1,12 +1,14 @@
+import { useScroll } from '../context/Scroll'
+
 type SceneType = 'window' | 'apartment' | 'bar' | 'office' | 'pier' | 'car' | 'fin'
 
 interface SceneBgProps {
   scene: SceneType
-  scrollY: number
   opacity?: number
 }
 
-export function SceneBackground({ scene, scrollY, opacity = 1 }: SceneBgProps) {
+export function SceneBackground({ scene, opacity = 1 }: SceneBgProps) {
+  const { scrollY } = useScroll()
   return (
     <div className="fixed inset-0 z-0 pointer-events-none" style={{ opacity }}>
       {scene === 'window' && <WindowScene scrollY={scrollY} />}

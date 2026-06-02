@@ -1,28 +1,43 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useLang } from '../context/Language'
 import { Kael } from '../components/Kael'
 import { SceneBackground } from '../components/SceneBackground'
 
-interface Props {
-  scrollY: number
-}
+gsap.registerPlugin(ScrollTrigger)
 
-export function ActEnd({ scrollY }: Props) {
+export function ActEnd() {
   const { t } = useLang()
-  const [v, setV] = useState<number[]>([])
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    const obs = new IntersectionObserver((es) => {
-      es.forEach((e) => {
-        if (e.isIntersecting) setV((p) => [...new Set([...p, +(e.target.getAttribute('data-p') || '0')])])
+    if (!ref.current) return
+    const ctx = gsap.context(() => {
+      ref.current!.querySelectorAll('[data-reveal]').forEach((el) => {
+        gsap.from(el, {
+          y: 30, opacity: 0, duration: 1.5, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+        })
       })
-    }, { threshold: 0.2 })
-    ref.current?.querySelectorAll('[data-p]').forEach((el) => obs.observe(el))
-    return () => obs.disconnect()
+      // FIN text gets dramatic scale-in
+      const fin = ref.current!.querySelector('[data-fin]')
+      if (fin) {
+        gsap.from(fin, {
+          scale: 0.8, opacity: 0, duration: 3, ease: 'power3.out',
+          scrollTrigger: { trigger: fin, start: 'top 80%', toggleActions: 'play none none reverse' }
+        })
+      }
+      // Character reveals
+      ref.current!.querySelectorAll('[data-char-reveal]').forEach((el) => {
+        gsap.from(el, {
+          y: 40, opacity: 0, duration: 2, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 80%', toggleActions: 'play none none reverse' }
+        })
+      })
+    }, ref)
+    return () => ctx.revert()
   }, [])
-
-  const s = (i: number) => v.includes(i)
 
   const lines = [
     { k: 'end.1', style: 'normal' },
@@ -37,14 +52,13 @@ export function ActEnd({ scrollY }: Props) {
 
   return (
     <section ref={ref} data-act="5" className="relative min-h-[800vh] overflow-hidden">
-      <SceneBackground scene="window" scrollY={scrollY} opacity={0.6} />
+      <SceneBackground scene="window" opacity={0.6} />
 
       <div className="relative z-10 flex flex-col items-center">
         {/* Act header */}
         <div className="h-screen flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="0"
-              className={`transition-all duration-[2000ms] ${s(0) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div data-reveal>
               <span className="font-typewriter text-red/50 text-xs tracking-[0.3em] uppercase block mb-3">
                 {t('end.act')}
               </span>
@@ -61,20 +75,17 @@ export function ActEnd({ scrollY }: Props) {
           <div key={i} className="min-h-[55vh] flex items-center justify-center px-4">
             <div className="w-full max-w-lg">
               {i === 1 && (
-                <div data-p={i}
-                  className={`flex justify-center mb-6 transition-all duration-[2000ms] ${s(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                <div data-char-reveal className="flex justify-center mb-6">
                   <Kael pose="stand" expression="sad" size={130} />
                 </div>
               )}
               {i === 5 && (
-                <div data-p={i}
-                  className={`flex justify-center mb-6 transition-all duration-[2000ms] ${s(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+                <div data-char-reveal className="flex justify-center mb-6">
                   <Kael pose="sit" expression="cry" size={140} />
                 </div>
               )}
 
-              <div data-p={i}
-                className={`transition-all duration-[1800ms] ${s(i) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+              <div data-reveal>
                 <p className={
                   line.style === 'emph'
                     ? 'font-display text-ink text-xl sm:text-2xl italic text-center'
@@ -96,8 +107,7 @@ export function ActEnd({ scrollY }: Props) {
         {/* FIN */}
         <div className="h-[50vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="8"
-              className={`transition-all duration-[3000ms] ${s(8) ? 'opacity-100' : 'opacity-0'}`}>
+            <div data-fin>
               <p className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl text-ink/[0.04] tracking-[0.2em] font-bold">
                 {t('end.fin')}
               </p>
@@ -108,8 +118,7 @@ export function ActEnd({ scrollY }: Props) {
         {/* Credits */}
         <div className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="9"
-              className={`transition-all duration-[1800ms] ${s(9) ? 'opacity-100' : 'opacity-0'}`}>
+            <div data-reveal>
               <div className="space-y-10">
                 <div>
                   <p className="font-typewriter text-dim/40 text-xs tracking-[0.3em] uppercase mb-1">

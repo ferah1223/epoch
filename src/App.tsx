@@ -15,7 +15,7 @@ import { ActScene } from './scenes/ActScene'
 import { ActHunt } from './scenes/ActHunt'
 import { ActTruth } from './scenes/ActTruth'
 import { ActEnd } from './scenes/ActEnd'
-import { useAudio } from './hooks/useAudio'
+import { useAudio, type SfxName } from './hooks/useAudio'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -24,108 +24,76 @@ function AppContent() {
   const audio = useAudio(currentAct)
   const mainRef = useRef<HTMLDivElement>(null)
 
-  // GSAP-powered scroll animations for reveal elements
+  // SFX scroll sync: trigger SFX when elements with data-sfx scroll into view
   useEffect(() => {
-    if (!mainRef.current) return
+    if (!mainRef.current || audio.muted) return
 
     const ctx = gsap.context(() => {
-      // Fade-in-up reveals on scroll
-      gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach((el) => {
-        gsap.from(el, {
-          y: 40,
-          opacity: 0,
-          duration: 1,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 85%',
-            end: 'top 60%',
-            toggleActions: 'play none none reverse',
-          },
-        })
-      })
-
-      // Parallax backgrounds
-      gsap.utils.toArray<HTMLElement>('[data-parallax]').forEach((el) => {
-        const depth = parseFloat(el.dataset.parallax || '0.2')
-        gsap.to(el, {
-          yPercent: depth * -30,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top bottom',
-            end: 'bottom top',
-            scrub: 1,
-          },
-        })
-      })
-
-      // Scale-in reveals
-      gsap.utils.toArray<HTMLElement>('[data-scale-reveal]').forEach((el) => {
-        gsap.from(el, {
-          scale: 0.85,
-          opacity: 0,
-          duration: 1.2,
-          ease: 'power3.out',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 80%',
-            toggleActions: 'play none none reverse',
-          },
+      gsap.utils.toArray<HTMLElement>('[data-sfx]').forEach((el) => {
+        const sfxName = el.dataset.sfx as SfxName
+        if (!sfxName) return
+        ScrollTrigger.create({
+          trigger: el,
+          start: 'top 80%',
+          once: true,
+          onEnter: () => {
+            if (!audio.muted) audio.playSfx(sfxName)
+          }
         })
       })
     }, mainRef)
 
     return () => ctx.revert()
-  }, [])
+  }, [audio.muted])
 
-  // Trigger SFX on act changes
-  useEffect(() => {
-    if (currentAct < 0 || audio.muted) return
-
-    // Trigger appropriate SFX per act
-    const sfxMap: Record<number, () => void> = {
-      0: () => audio.playSfx('rain_start'),
-      1: () => audio.playSfx('phone'),
-      2: () => audio.playSfx('door'),
-      3: () => {}, // Hunt — no specific SFX
-      4: () => audio.playSfx('thunder'),
-      5: () => {},
-    }
-
-    sfxMap[currentAct]?.()
-  }, [currentAct])
+  // Rain starts automatically when unmuted (handled in useAudio toggle)
 
   return (
-    <div className="relative bg-void" ref={mainRef}>
-      <Rain />
-      <FilmGrain />
-      <Vignette />
-      <Timeline act={currentAct} />
-      <AudioCtrl act={currentAct} />
-      <LangToggle />
-      <main>
-        <Prologue scrollY={0} />
-        <ActCall scrollY={0} />
-        <ActScene scrollY={0} />
-        <ActHunt scrollY={0} />
-        <ActTruth scrollY={0} />
-        <ActEnd scrollY={0} />
-      </main>
-    </div>
+    <>
+      {/* Skip to content — accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100]
+                   focus:px-4 focus:py-2 focus:bg-surface focus:text-ink focus:rounded-lg
+                   focus:outline-2 focus:outline-red-hot font-typewriter text-sm"
+      >
+        Skip to content
+      </a>
+
+      <div className="relative bg-void" ref={mainRef}>
+        {/* Ambient glow blobs */}
+        <div className="ambient-glow" aria-hidden="true" />
+
+        <Rain />
+        <FilmGrain />
+        <Vignette />
+        {/* Noise overlay */}
+        <div className="noise-overlay" aria-hidden="true" />
+
+        <Timeline act={currentAct} />
+        <AudioCtrl act={currentAct} />
+        <LangToggle />
+
+        <main id="main-content">
+          <Prologue />
+          <ActCall />
+          <ActScene />
+          <ActHunt />
+          <ActTruth />
+          <ActEnd />
+        </main>
+      </div>
+    </>
   )
 }
 
 export default function App() {
   const [loaded, setLoaded] = useState(false)
 
-  // Real loading: wait for fonts + critical resources
   useEffect(() => {
     const load = async () => {
       try {
-        // Wait for fonts
         await document.fonts.ready
-        // Minimum 1.5s for the preloader animation, max 3s
         await new Promise(r => setTimeout(r, 1800))
       } catch {}
       setLoaded(true)

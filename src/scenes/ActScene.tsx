@@ -1,7 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { useLang } from '../context/Language'
 import { Kael } from '../components/Kael'
 import { SceneBackground } from '../components/SceneBackground'
+
+gsap.registerPlugin(ScrollTrigger)
 
 interface ClueCard {
   key: string
@@ -14,55 +18,63 @@ const CLUES: ClueCard[] = [
   { key: 'phone', icon: '📱' },
 ]
 
-interface Props {
-  scrollY: number
-}
-
-export function ActScene({ scrollY }: Props) {
+export function ActScene() {
   const { t } = useLang()
-  const [v, setV] = useState<number[]>([])
   const [openClue, setOpenClue] = useState<string | null>(null)
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = useRef<HTMLElement>(null)
+
+  // Keyboard handler for clue cards
+  const handleClueKey = useCallback((e: React.KeyboardEvent, key: string) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      setOpenClue(openClue === key ? null : key)
+    }
+  }, [openClue])
 
   useEffect(() => {
-    const obs = new IntersectionObserver((es) => {
-      es.forEach((e) => {
-        if (e.isIntersecting) setV((p) => [...new Set([...p, +(e.target.getAttribute('data-p') || '0')])])
+    if (!ref.current) return
+    const ctx = gsap.context(() => {
+      ref.current!.querySelectorAll('[data-reveal]').forEach((el) => {
+        gsap.from(el, {
+          y: 30, opacity: 0, duration: 1.2, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+        })
       })
-    }, { threshold: 0.25 })
-    ref.current?.querySelectorAll('[data-p]').forEach((el) => obs.observe(el))
-    return () => obs.disconnect()
+      // Kael slide-in
+      ref.current!.querySelectorAll('[data-slide-left]').forEach((el) => {
+        gsap.from(el, {
+          x: -60, opacity: 0, duration: 1.5, ease: 'power2.out',
+          scrollTrigger: { trigger: el, start: 'top 85%', toggleActions: 'play none none reverse' }
+        })
+      })
+    }, ref)
+    return () => ctx.revert()
   }, [])
-
-  const s = (i: number) => v.includes(i)
 
   return (
     <section ref={ref} data-act="2" className="relative min-h-[700vh] bg-deep overflow-hidden">
-      <SceneBackground scene="apartment" scrollY={scrollY} />
+      <SceneBackground scene="apartment" />
 
       <div className="relative z-10 flex flex-col items-center">
-        {/* Act header with Kael entering */}
+        {/* Act header */}
         <div className="h-screen flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="0"
-              className={`transition-all duration-[2000ms] ${s(0) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div data-reveal>
               <span className="font-typewriter text-red/50 text-xs tracking-[0.3em] uppercase block mb-3">
                 {t('tl.scene')}
               </span>
               <div className="h-px w-16 bg-red/15 mx-auto" />
             </div>
-            <div data-p="0"
-              className={`mt-8 transition-all duration-[2000ms] delay-500 ${s(0) ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-16'}`}>
+            <div data-slide-left className="mt-8">
               <Kael pose="stand" expression="determined" size={130} className="mx-auto" />
             </div>
           </div>
         </div>
 
-        {/* Arrival narration */}
+        {/* Arrival — triggers door SFX */}
         <div className="min-h-[50vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
-            <div data-p="1"
-              className={`transition-all duration-[1800ms] ${s(1) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+            <div data-reveal data-sfx="door">
               <p className="font-typewriter text-paper/70 text-sm sm:text-base leading-[1.8] tracking-wide">
                 {t('scene.1')}
               </p>
@@ -73,8 +85,7 @@ export function ActScene({ scrollY }: Props) {
         {/* Apartment description */}
         <div className="min-h-[50vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg">
-            <div data-p="2"
-              className={`transition-all duration-[1800ms] ${s(2) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+            <div data-reveal>
               <p className="font-typewriter text-paper/70 text-sm sm:text-base leading-[1.8] tracking-wide">
                 {t('scene.2')}
               </p>
@@ -85,8 +96,7 @@ export function ActScene({ scrollY }: Props) {
         {/* Kael kneeling */}
         <div className="min-h-[60vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="3"
-              className={`transition-all duration-[1800ms] ${s(3) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+            <div data-reveal>
               <Kael pose="kneel" expression="determined" size={100} className="mx-auto" />
               <p className="font-display text-ink text-lg sm:text-xl italic mt-6">
                 {t('scene.3')}
@@ -98,8 +108,7 @@ export function ActScene({ scrollY }: Props) {
         {/* Clue intro */}
         <div className="min-h-[40vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="4"
-              className={`transition-all duration-[1500ms] ${s(4) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
+            <div data-reveal>
               <p className="font-display text-ink text-lg sm:text-xl italic">
                 {t('scene.4')}
               </p>
@@ -107,17 +116,19 @@ export function ActScene({ scrollY }: Props) {
           </div>
         </div>
 
-        {/* Interactive clue cards */}
-        {CLUES.map((clue, i) => (
+        {/* Interactive clue cards — with keyboard support */}
+        {CLUES.map((clue) => (
           <div key={clue.key} className="min-h-[70vh] flex items-center justify-center px-4">
             <div className="w-full max-w-lg">
-              <div data-p={i + 5}
-                className={`transition-all duration-[1500ms] ${s(i + 5) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-                <button
-                  onClick={() => setOpenClue(openClue === clue.key ? null : clue.key)}
-                  className="w-full text-left group cursor-pointer"
+              <div data-reveal>
+                <div
+                  role="button"
+                  tabIndex={0}
                   aria-expanded={openClue === clue.key}
                   aria-label={t(`clue.${clue.key}`)}
+                  onClick={() => setOpenClue(openClue === clue.key ? null : clue.key)}
+                  onKeyDown={(e) => handleClueKey(e, clue.key)}
+                  className="w-full text-left group cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-red-hot focus-visible:ring-offset-2 focus-visible:ring-offset-void rounded-lg"
                 >
                   <div className={`border rounded-lg p-5 sm:p-6 transition-all duration-500
                     ${openClue === clue.key
@@ -149,7 +160,7 @@ export function ActScene({ scrollY }: Props) {
                       </div>
                     </div>
                   </div>
-                </button>
+                </div>
               </div>
             </div>
           </div>
@@ -158,8 +169,7 @@ export function ActScene({ scrollY }: Props) {
         {/* Kael standing */}
         <div className="min-h-[50vh] flex items-center justify-center px-4">
           <div className="w-full max-w-lg text-center">
-            <div data-p="8"
-              className={`transition-all duration-[2000ms] ${s(8) ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+            <div data-reveal>
               <Kael pose="stand" expression="determined" size={140} className="mx-auto" />
             </div>
           </div>
